@@ -25,7 +25,10 @@ while (abs($offset) < $filesize) {
     }
 
     # parse each line
-    $section++ if ($line =~ /%%/);
+    if ($line =~ /%%/) {
+	$section++;
+	next;
+    }
     my @data = split /:/, $line;
     if ($section == 1) {
 	$counties{$data[0]} = $data[1];
