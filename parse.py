@@ -18,6 +18,8 @@ with urllib.request.urlopen('https://dph.georgia.gov/covid-19-daily-status-repor
                 html_data = inner_result.group(1)
                 connection = sqlite3.connect('caseupdates.sqlite')
                 cursor = connection.cursor()
+                cursor.execute('select max(set_id) from CASES')
+                set_id = cursor.fetchone()[0] + 1
                 for match in re.finditer(
                     r'<tr><td class="tcell">(\w+)</td><td class="tcell">(\d+)\s*</td><td class="tcell">(\d+)\s*</td></tr>',
                     html_data, re.IGNORECASE):
@@ -27,8 +29,8 @@ with urllib.request.urlopen('https://dph.georgia.gov/covid-19-daily-status-repor
                     deaths = match.group(3)
 
                     cursor.execute(
-                        'INSERT INTO CASES (DATETIME, COUNTY, CASES, DEATHS) VALUES (?, ?, ?, ?)',
-                        (str(datetime.datetime.now()), county, int(cases), int(deaths))
+                        'INSERT INTO CASES (DATETIME, COUNTY, CASES, DEATHS, SET_ID) VALUES (?, ?, ?, ?, ?)',
+                        (str(datetime.datetime.now()), county, int(cases), int(deaths), int(set_id))
                     )
                 connection.commit()
                 connection.close()
