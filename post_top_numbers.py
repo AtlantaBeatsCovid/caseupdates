@@ -38,8 +38,42 @@ while True:
         current_cases = cases
         count += 1
 
+text = "{0}".format(f'Top Case Increases ({str(datetime.datetime.now())}):\n{text}')
+text += "\n\nTop Death Increases:\n"
+
+cursor.execute("""SELECT NEW.COUNTY, (NEW.DEATHS - OLD.DEATHS) AS INCREASE
+FROM CASES as NEW
+INNER JOIN (
+    SELECT COUNTY, DEATHS
+    FROM CASES
+    WHERE SET_ID = (
+        SELECT MAX(SET_ID)
+        FROM CASES
+    ) - 1
+) AS OLD ON OLD.COUNTY = NEW.COUNTY
+WHERE NEW.SET_ID = (
+    SELECT MAX(SET_ID) FROM CASES)
+AND NEW.COUNTY != 'Unknown'
+ORDER BY INCREASE DESC""");
+
+count = 0
+current_deaths = 0
+while True:
+    (county, deaths) = cursor.fetchone()
+    if current_cases == 0:
+        current_deaths = deaths
+    if current_deaths == deaths:
+        text += f'{county}: {deaths}\n'
+        count += 1
+    elif count >= 10:
+        break
+    else:
+        text += f'{county}: {deaths}\n'
+        current_deaths = deaths
+        count += 1
+
 # based on https://www.accadius.com/send-message-slack-python-program/
-post = {"text": "{0}".format(f'Top Case Increases ({str(datetime.datetime.now())}):\n {text}')}
+post = {"text": text}
 
 try:
     json_data = json.dumps(post)
