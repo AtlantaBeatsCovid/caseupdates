@@ -1,6 +1,7 @@
 #!/bin/zsh
 # update
-python ./parse.py
+~/anaconda3/envs/covid/bin/python ./parse.py
 
 # post
-python ./post_top_numbers.py "$1"
+~/anaconda3/envs/covid/bin/python ./post_top_numbers.py "$1"
+
