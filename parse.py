@@ -10,7 +10,7 @@ with urllib.request.urlopen('https://dph.georgia.gov/covid-19-daily-status-repor
         main_response.read().decode(), re.IGNORECASE)
     if outer_result:
         inner_url = outer_result.group(1)
-        with urllib.request.urlopen(inner_url) as inner_response:
+        with urllib.request.urlopen('https://d20s4vd27d0hk0.cloudfront.net/') as inner_response:
             inner_result = re.search(
                 r'COVID-19 Confirmed Cases By County:</td><td class="tcellh">No\. Cases</td><td class="tcellh">No\. Deaths</td></tr>(.*?)</table>',
                 inner_response.read().decode(), re.IGNORECASE | re.DOTALL)
