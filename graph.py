@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import sqlite3
 
@@ -44,7 +46,7 @@ while True:
 
 # based on https://stackoverflow.com/questions/4534480/get-legend-as-a-separate-picture-in-matplotlib
 fig, ax = plt.subplots(figsize=(11, 11))
-ax.set_title('Cumulative Cases By GA County')
+ax.set_title('Cumulative Cases By GA County ' + str(datetime.now()))
 for i in range(len(counts)):
     x = []
     y = []
