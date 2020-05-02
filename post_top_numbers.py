@@ -54,12 +54,16 @@ INNER JOIN (
 WHERE NEW.SET_ID = (
     SELECT MAX(SET_ID) FROM CASES)
 AND NEW.COUNTY != 'Unknown'
+AND INCREASE > 0
 ORDER BY INCREASE DESC""");
 
 count = 0
 current_deaths = 0
 while True:
-    (county, deaths) = cursor.fetchone()
+    row = cursor.fetchone()
+    if row is None:
+        break
+    (county, deaths) = row
     if current_cases == 0:
         current_deaths = deaths
     if current_deaths == deaths:
