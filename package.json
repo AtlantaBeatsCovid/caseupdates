@@ -1,0 +1,9 @@
+{
+  "name": "caseupdates",
+  "version": "1.0.0",
+  "repository": "git@github.com:AtlantaBeatsCovid/caseupdates.git",
+  "author": "Drake Sobania",
+  "dependencies": {
+    "puppeteer": "^3.0.4"
+  }
+}
