@@ -4,6 +4,7 @@
   "repository": "git@github.com:AtlantaBeatsCovid/caseupdates.git",
   "author": "Drake Sobania",
   "dependencies": {
+    "better-sqlite3": "^7.0.1",
     "puppeteer": "^3.0.4"
   }
 }
