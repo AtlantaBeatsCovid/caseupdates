@@ -21,7 +21,7 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
 
 csv_file_name = 'countycases.csv'
 csv_path = directory_path + csv_file_name
-with open(zip_path) as csvfile:
+with open(csv_path) as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     connection = sqlite3.connect('caseupdates.sqlite')
     cursor = connection.cursor()
