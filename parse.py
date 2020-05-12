@@ -1,40 +1,40 @@
-import urllib.request
-import logging
-import re
 import sqlite3
 import datetime
+import urllib3
+import zipfile
+import csv
 
-with urllib.request.urlopen('https://dph.georgia.gov/covid-19-daily-status-report') as main_response:
-    outer_result = re.search(
-        r"\s*var pymParent = new pym\.Parent\('covid19dashdph', '(.+)', \{'title':'COVID-19 Daily Status Report'\}\);",
-        main_response.read().decode(), re.IGNORECASE)
-    if outer_result:
-        inner_url = outer_result.group(1)
-        with urllib.request.urlopen('https://d20s4vd27d0hk0.cloudfront.net/') as inner_response:
-            inner_result = re.search(
-                r'COVID-19 Confirmed Cases By County:</td><td class="tcellh">No\. Cases</td><td class="tcellh">No\. Deaths</td></tr>(.*?)</table>',
-                inner_response.read().decode(), re.IGNORECASE | re.DOTALL)
-            if inner_result:
-                html_data = inner_result.group(1)
-                connection = sqlite3.connect('caseupdates.sqlite')
-                cursor = connection.cursor()
-                cursor.execute('select max(set_id) from CASES')
-                set_id = cursor.fetchone()[0] + 1
-                for match in re.finditer(
-                    r'<tr><td class="tcell">(\w+)</td><td class="tcell">(\d+)\s*</td><td class="tcell">(\d+)\s*</td></tr>',
-                    html_data, re.IGNORECASE):
+http = urllib3.PoolManager()
+response = http.request('GET', 'https://ga-covid19.ondemand.sas.com/docs/ga_covid_data.zip', preload_content=False)
+zip_path = '/tmp/ga_covid_data.zip'
+chunk_size = 4
+with open(zip_path, 'wb') as out:
+    while True:
+        data = response.read(chunk_size)
+        if not data:
+            break
+        out.write(data)
 
-                    county = match.group(1)
-                    cases = match.group(2)
-                    deaths = match.group(3)
+directory_path = '/tmp/ga_covid_data/'
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall(directory_path)
 
-                    cursor.execute(
-                        'INSERT INTO CASES (DATETIME, COUNTY, CASES, DEATHS, SET_ID) VALUES (?, ?, ?, ?, ?)',
-                        (str(datetime.datetime.now()), county, int(cases), int(deaths), int(set_id))
-                    )
-                connection.commit()
-                connection.close()
-            else:
-                logging.error("Can't find data.")
-    else:
-        logging.error("Can't find data url.")
+csv_file_name = 'countycases.csv'
+csv_path = directory_path + csv_file_name
+with open(zip_path) as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    connection = sqlite3.connect('caseupdates.sqlite')
+    cursor = connection.cursor()
+    cursor.execute('select max(set_id) from CASES')
+    set_id = cursor.fetchone()[0] + 1
+    for row in reader:
+        if row[0] != 'county_resident': # skip first line
+            county = row[0]
+            cases = row[1]
+            deaths = row[2]
+            cursor.execute(
+                'INSERT INTO CASES (DATETIME, COUNTY, CASES, DEATHS, SET_ID) VALUES (?, ?, ?, ?, ?)',
+                (str(datetime.datetime.now()), county, int(cases), int(deaths), int(set_id))
+            )
+    connection.commit()
+    connection.close()
